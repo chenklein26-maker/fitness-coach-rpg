@@ -17,10 +17,13 @@ ROOT = Path(__file__).resolve().parent.parent
 USER_DATA = ROOT / "user-data"
 CN_TZ = timezone(timedelta(hours=8))
 
-# EXP 规则（references/rpg-rules.md）
+# EXP 规则（references/rpg-rules.md v2：奖励健康行为，不奖励硬撑）
 EXP_PER_SET = 5
-EXP_PER_PR = 20
+EXP_PER_PR = 10  # PR 只是里程碑，不鼓励为大重量硬撑
 EXP_PER_CARDIO = 15
+EXP_PER_HONEST_PAIN = 5  # 诚实记录疼痛
+EXP_PER_REASONABLE_DELOAD = 5  # 合理降重
+EXP_LONG_TERM_CONSISTENCY = 20  # 近30天≥8次
 STREAK_BONUS = {2: 1.2, 3: 1.5, 5: 2.0}
 
 # 等级阈值（rpg-rules.md）
@@ -71,26 +74,40 @@ def compute_streak(sessions):
 
 
 def compute_exp(sessions):
-    """按时间顺序算累计 EXP，PR 基于 session 开始前的历史最佳。"""
+    """按时间顺序算累计 EXP。奖励健康行为（诚实记录/合理降重/规律/一致），PR 只是里程碑。"""
+    from datetime import datetime, timedelta
     sorted_s = sorted(sessions, key=lambda s: s.get("date", ""))
     running = {}  # 动作 → 历史最大重量
     total = 0
     last_session_exp = 0
     for s in sorted_s:
         se = 0
-        # 该 session 内每动作的最大重量
         session_max = {}
+        has_honest_pain = False
         for ex in s.get("exercises", []):
             name = ex.get("exercise", "")
+            # 诚实记录疼痛
+            p = ex.get("pain", {})
+            if p.get("severity", 0) > 0:
+                has_honest_pain = True
             for st in ex.get("sets", []):
                 se += EXP_PER_SET
                 w = st.get("weight_kg", 0) or 0
                 if name not in session_max or w > session_max[name]:
                     session_max[name] = w
-        # PR：突破该 session 前的历史最佳（首次不算 PR）
+        # PR（里程碑，非主要来源）
         for name, w in session_max.items():
             if name in running and w > running[name]:
                 se += EXP_PER_PR
+        # 合理降重：本次 < 上次且 RPE 合理
+        overall_rpe = s.get("overall_rpe")
+        rpe_ok = overall_rpe is not None and overall_rpe <= 8
+        for name, w in session_max.items():
+            if name in running and w < running[name] and rpe_ok:
+                se += EXP_PER_REASONABLE_DELOAD
+        # 诚实记录疼痛
+        if has_honest_pain:
+            se += EXP_PER_HONEST_PAIN
         # 更新历史最佳
         for name, w in session_max.items():
             if name not in running or w > running[name]:
@@ -99,6 +116,16 @@ def compute_exp(sessions):
             se += EXP_PER_CARDIO
         total += se
         last_session_exp = se
+    # 长期一致性：近 30 天 ≥ 8 次
+    if sessions:
+        dates = sorted({s.get("date") for s in sessions if s.get("date")})
+        if dates:
+            latest = datetime.strptime(dates[-1], "%Y-%m-%d").date()
+            cutoff = latest - timedelta(days=30)
+            recent_count = sum(1 for d in dates
+                               if datetime.strptime(d, "%Y-%m-%d").date() >= cutoff)
+            if recent_count >= 8:
+                total += EXP_LONG_TERM_CONSISTENCY
     # 连击加成（仅最近一次）
     streak = compute_streak(sessions)
     bonus = 1.0
