@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-08-05T20:30:00+08:00",
+  "current_chapter": "第二章：见习佣兵",
+  "current_task": "前往橘子风车镇，向铁匠老托德询问铁牌来历",
+  "default_direction": "若一切顺利，将揭开共振法则的一角，并接触更深层的力量体系",
+  "resources": {"gold": 45, "reputation": 12},
+  "character_ref": "level/attributes 见 CURRENT-STATE.json",
+  "active_chapter": {
+    "name": "见习佣兵",
+    "goal": "弄清铁牌的来历，以及自己为何能感知共振",
+    "revealable": ["铁牌是旧时代佣兵团的信物", "橘子风车镇的魔素场有特殊性质"],
+    "obstacles": ["老托德不太信任陌生人", "镇上似乎有人在监视你"],
+    "typical_resolution": "获得老托德的初步信任，铁牌激活，感知力增强"
+  },
+  "unlocked_chapters": ["第一章：冒险者新人——在蓝湾城公会注册，完成首次考核"],
+  "npc_relations": [
+    {"name": "老托德", "identity": "橘子风车镇铁匠", "relation": "中立", "role": "线索提供者"},
+    {"name": "灰隼", "identity": "蓝湾城公会考官", "relation": "友好", "role": "导师"}
+  ],
+  "active_foreshadowing": [
+    "影之核的排异——身体对暗属性核心的排斥尚未显现，可能在未来某次高强度训练后触发",
+    "铁牌上的共振纹路——似乎与主角体质有关，老托德可能知道一部分"
+  ]
+}

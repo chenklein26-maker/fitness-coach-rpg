@@ -155,6 +155,7 @@ cp -r assets/starter-profile user-data
 ```text
 ├── README.md
 ├── SKILL.md
+├── CHANGELOG.md
 ├── references/
 │   ├── coach-wang-tan-method.md
 │   ├── coach-guide.md
@@ -180,6 +181,13 @@ cp -r assets/starter-profile user-data
 │   ├── update_summary.py
 │   └── validate_state.py
 └── examples/
+    ├── completed-save/
+    │   ├── README.md
+    │   ├── CURRENT-STATE.json
+    │   ├── sessions/
+    │   │   └── 2026-07-29.json
+    │   └── story/
+    │       └── STATE.json
     ├── MINIMAL-RUN.md
     ├── AUTHOR-WORLD-SAMPLE.md
     └── AUTHOR-DESIGN-NOTES.md

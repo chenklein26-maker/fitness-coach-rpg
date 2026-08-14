@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-07-29",
+  "session_type": "push",
+  "duration_minutes": 65,
+  "overall_rpe": 9,
+  "exercises": [
+    {
+      "exercise": "barbell_bench_press",
+      "sets": [
+        {"weight_kg": 40, "reps": 10, "rpe": 7},
+        {"weight_kg": 45, "reps": 8, "rpe": 8},
+        {"weight_kg": 47.5, "reps": 8, "rpe": 9}
+      ],
+      "pain": {"location": null, "severity": 0},
+      "notes": "PR！47.5kg，最后两组咬牙推完，胸肌发力感强"
+    },
+    {
+      "exercise": "incline_dumbbell_press",
+      "sets": [{"weight_kg": 16, "reps": 12, "rpe": 8}],
+      "pain": {"location": null, "severity": 0},
+      "notes": "4组12次，上胸有感觉"
+    },
+    {
+      "exercise": "lateral_raise",
+      "sets": [{"weight_kg": 5, "reps": 15, "rpe": 9}],
+      "pain": {"location": "右肩", "severity": 2},
+      "notes": "最后一组右肩有点酸，降了重量"
+    }
+  ],
+  "story_advance": "推日突破——在蓝湾城公会训练场，你的卧推突破引来一位老佣兵的注意。他扔给你一枚刻着共振纹路的铁牌：'小子，去橘子风车镇找铁匠老托德，他会告诉你这东西的来历。'第一章收束，第二章'见习佣兵'开启。"
+}

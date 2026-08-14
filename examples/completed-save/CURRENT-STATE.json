@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-08-05T20:30:00+08:00",
+  "profile": {
+    "name": "小龙",
+    "theme": "剑与魔法",
+    "level": 2,
+    "exp": 285,
+    "exp_to_next": 600,
+    "title": "见习佣兵"
+  },
+  "attributes": {"STR": 28.5, "END": null, "CON": 4.2, "AGI": null, "INT": null},
+  "recovery": {
+    "last_session_date": "2026-08-05",
+    "days_since_last": 0,
+    "streak_days": 2,
+    "recent_rpe_trend": [8, 9, 7],
+    "active_pain": []
+  },
+  "recent_bests": {
+    "barbell_bench_press": {"weight_kg": 47.5, "reps": 8, "date": "2026-07-29"},
+    "barbell_row": {"weight_kg": 50, "reps": 10, "date": "2026-07-22"},
+    "back_squat": {"weight_kg": 60, "reps": 8, "date": "2026-07-25"}
+  }
+}
