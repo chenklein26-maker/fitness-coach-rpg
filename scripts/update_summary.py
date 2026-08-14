@@ -1,0 +1,198 @@
+#!/usr/bin/env python3
+"""训练后更新 CURRENT-STATE.json（重算 bests/exp/recovery/STR/CON）。
+
+用法：
+    python scripts/update_summary.py
+
+END/AGI/INT 不由脚本计算（输入数据缺失），留空由 AI 评估填入。
+"""
+import sys
+from datetime import datetime, timezone, timedelta
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from _common import load_json, atomic_write
+
+ROOT = Path(__file__).resolve().parent.parent
+USER_DATA = ROOT / "user-data"
+CN_TZ = timezone(timedelta(hours=8))
+
+# EXP 规则（references/rpg-rules.md）
+EXP_PER_SET = 5
+EXP_PER_PR = 20
+EXP_PER_CARDIO = 15
+STREAK_BONUS = {2: 1.2, 3: 1.5, 5: 2.0}
+
+# 等级阈值（rpg-rules.md）
+LEVEL_THRESHOLDS = {1: 0, 2: 200, 3: 600, 4: 1500, 5: 3500, 6: 7000, 7: 15000}
+
+
+def load_all_sessions():
+    d = USER_DATA / "sessions"
+    if not d.exists():
+        return []
+    out = []
+    for f in sorted(d.glob("*.json")):
+        try:
+            out.append(load_json(f))
+        except Exception as e:
+            print(f"⚠️ 跳过 {f.name}: {e}")
+    return out
+
+
+def compute_bests(sessions):
+    bests = {}
+    for s in sessions:
+        date = s.get("date", "")
+        for ex in s.get("exercises", []):
+            name = ex.get("exercise", "")
+            for st in ex.get("sets", []):
+                w = st.get("weight_kg", 0) or 0
+                r = st.get("reps", 0) or 0
+                if name not in bests or w > bests[name]["weight_kg"]:
+                    bests[name] = {"weight_kg": w, "reps": r, "date": date}
+    return bests
+
+
+def compute_streak(sessions):
+    dates = sorted({s.get("date") for s in sessions if s.get("date")})
+    if not dates:
+        return 0
+    last = datetime.strptime(dates[-1], "%Y-%m-%d").date()
+    streak = 1
+    for i in range(len(dates) - 2, -1, -1):
+        prev = datetime.strptime(dates[i], "%Y-%m-%d").date()
+        if (last - prev).days == 1:
+            streak += 1
+            last = prev
+        else:
+            break
+    return streak
+
+
+def compute_exp(sessions):
+    """按时间顺序算累计 EXP，PR 基于 session 开始前的历史最佳。"""
+    sorted_s = sorted(sessions, key=lambda s: s.get("date", ""))
+    running = {}  # 动作 → 历史最大重量
+    total = 0
+    last_session_exp = 0
+    for s in sorted_s:
+        se = 0
+        # 该 session 内每动作的最大重量
+        session_max = {}
+        for ex in s.get("exercises", []):
+            name = ex.get("exercise", "")
+            for st in ex.get("sets", []):
+                se += EXP_PER_SET
+                w = st.get("weight_kg", 0) or 0
+                if name not in session_max or w > session_max[name]:
+                    session_max[name] = w
+        # PR：突破该 session 前的历史最佳（首次不算 PR）
+        for name, w in session_max.items():
+            if name in running and w > running[name]:
+                se += EXP_PER_PR
+        # 更新历史最佳
+        for name, w in session_max.items():
+            if name not in running or w > running[name]:
+                running[name] = w
+        if s.get("session_type", "").lower() in ("cardio", "有氧", "aerobic"):
+            se += EXP_PER_CARDIO
+        total += se
+        last_session_exp = se
+    # 连击加成（仅最近一次）
+    streak = compute_streak(sessions)
+    bonus = 1.0
+    if streak >= 5:
+        bonus = STREAK_BONUS[5]
+    elif streak >= 3:
+        bonus = STREAK_BONUS[3]
+    elif streak >= 2:
+        bonus = STREAK_BONUS[2]
+    total = total - last_session_exp + int(last_session_exp * bonus)
+    return total
+
+
+def compute_recovery(sessions):
+    if not sessions:
+        return {"last_session_date": None, "days_since_last": None,
+                "streak_days": 0, "recent_rpe_trend": [], "active_pain": []}
+    dates = sorted({s.get("date") for s in sessions if s.get("date")})
+    last_date = dates[-1]
+    today = datetime.now(CN_TZ).strftime("%Y-%m-%d")
+    days = (datetime.strptime(today, "%Y-%m-%d").date() -
+            datetime.strptime(last_date, "%Y-%m-%d").date()).days
+    recent = sorted(sessions, key=lambda s: s.get("date", ""))[-5:]
+    rpe_trend = [s.get("overall_rpe") for s in recent
+                 if s.get("overall_rpe") is not None]
+    pain = []
+    for s in sorted(sessions, key=lambda s: s.get("date", ""))[-10:]:
+        for ex in s.get("exercises", []):
+            p = ex.get("pain", {})
+            if p.get("severity", 0) > 0:
+                pain.append({"location": p.get("location"),
+                             "severity": p["severity"], "date": s.get("date")})
+    return {"last_session_date": last_date, "days_since_last": days,
+            "streak_days": compute_streak(sessions),
+            "recent_rpe_trend": rpe_trend, "active_pain": pain}
+
+
+def compute_attributes(sessions):
+    """STR/CON 脚本算，END/AGI/INT 留空给 AI。"""
+    max_w = 0
+    total_reps = 0
+    total_vol = 0
+    for s in sessions:
+        for ex in s.get("exercises", []):
+            for st in ex.get("sets", []):
+                w = st.get("weight_kg", 0) or 0
+                r = st.get("reps", 0) or 0
+                if w > max_w:
+                    max_w = w
+                total_reps += r
+                total_vol += w * r
+    return {"STR": round(max_w / 2 + total_reps / 20, 1),
+            "END": None, "CON": round(total_vol / 1000, 1),
+            "AGI": None, "INT": None}
+
+
+def main():
+    state_file = USER_DATA / "CURRENT-STATE.json"
+    if not state_file.exists():
+        print(f"❌ {state_file} 不存在。先运行 init_profile.py。")
+        return 1
+    sessions = load_all_sessions()
+    state = load_json(state_file)
+
+    state["recent_bests"] = compute_bests(sessions)
+    state["recovery"] = compute_recovery(sessions)
+
+    exp = compute_exp(sessions)
+    state["profile"]["exp"] = exp
+    new_level = 1
+    for lv in sorted(LEVEL_THRESHOLDS, reverse=True):
+        if exp >= LEVEL_THRESHOLDS[lv]:
+            new_level = lv
+            break
+    old_level = state["profile"].get("level", 1)
+    if new_level != old_level:
+        print(f"🎉 升级！Lv.{old_level} → Lv.{new_level}")
+    state["profile"]["level"] = new_level
+    state["profile"]["exp_to_next"] = LEVEL_THRESHOLDS.get(new_level + 1, 15000)
+
+    new_attr = compute_attributes(sessions)
+    old_attr = state.get("attributes", {})
+    old_attr["STR"] = new_attr["STR"]
+    old_attr["CON"] = new_attr["CON"]
+    state["attributes"] = old_attr
+
+    state["updated_at"] = datetime.now(CN_TZ).strftime("%Y-%m-%dT%H:%M:%S+08:00")
+    atomic_write(state_file, state)
+    print(f"✅ 已更新 {state_file.name}")
+    print(f"   Lv.{new_level} | EXP {exp}/{state['profile']['exp_to_next']} | "
+          f"STR {old_attr['STR']} CON {old_attr['CON']}")
+    print("   END/AGI/INT 留空，由 AI 训练后评估填入。")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

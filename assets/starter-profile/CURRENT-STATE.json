@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "updated_at": null,
+  "profile": {
+    "name": "<你的名字>",
+    "theme": "<经典模式 / 武侠 / 剑与魔法 / 战士>",
+    "level": 1,
+    "exp": 0,
+    "exp_to_next": 200,
+    "title": "暂无"
+  },
+  "attributes": {"STR": 0, "END": 0, "CON": 0, "AGI": 0, "INT": 0},
+  "recovery": {
+    "last_session_date": null,
+    "days_since_last": null,
+    "streak_days": 0,
+    "recent_rpe_trend": [],
+    "active_pain": []
+  },
+  "recent_bests": {}
+}

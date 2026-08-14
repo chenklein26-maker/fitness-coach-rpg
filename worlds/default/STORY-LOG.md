@@ -1,8 +1,8 @@
 # STORY LOG — 默认剧情日志
 
 > 这是预置的动态剧情状态模板。与 `WORLD-LOG.md` 配合使用。
-> 如果不想从零搭建剧情结构，把这份文件复制到 `profiles/` 并改名为 `STORY-LOG.md` 即可。
-> 想自己设计剧情？参考 `profiles/EXAMPLE-STORY-LOG.md` 模板。
+> 使用时把内容填入 `user-data/story/STATE.json`（参考 `assets/starter-profile/story/STATE.json` 的字段结构）。
+> 想自己设计剧情？参考 `assets/starter-profile/story/STATE.json` 模板。
 
 ## 1. 伏笔库
 

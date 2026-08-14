@@ -97,28 +97,27 @@ If you want to run your own "save file" instead of inheriting someone else's sto
 
 ---
 
-### 📋 手动操作方式（如环境不支持完整 Skill 机制）
+### 📋 手动操作方式
 
 ```bash
 # 克隆项目
 git clone https://github.com/chenklein26-maker/fitness-coach-rpg.git
 cd fitness-coach-rpg
 
-# Linux/macOS
-cp profiles/EXAMPLE-FITNESS-LOG.md profiles/FITNESS-LOG.md
-cp profiles/EXAMPLE-STORY-LOG.md profiles/STORY-LOG.md
-cp profiles/EXAMPLE-WORLD-LOG.md profiles/WORLD-LOG.md
+# 方式一：用脚本初始化（需要 Python 3.8+）
+python scripts/init_profile.py --name 你的名字 --theme 武侠
 
-# Windows
-copy profiles\EXAMPLE-FITNESS-LOG.md profiles\FITNESS-LOG.md
-copy profiles\EXAMPLE-STORY-LOG.md profiles\STORY-LOG.md
-copy profiles\EXAMPLE-WORLD-LOG.md profiles\WORLD-LOG.md
+# 方式二：手动复制模板
+cp -r assets/starter-profile user-data
+# 然后编辑 user-data/PROFILE.md 和 CURRENT-STATE.json 填入你的信息
 ```
+
+> 脚本零外部依赖，只用 Python 标准库。没有 Python 环境？见下方[降级路径](#降级路径)。
 
 ### 两种起步方式
 
-- **懒得自己搭世界？** 直接把 `worlds/default/` 里的 `WORLD-LOG.md` 和 `STORY-LOG.md` 复制到 `profiles/`，这是一套完整的预置世界（共振法则剑与魔法），改名就能用。
-- **想自己创建世界？** 用 `profiles/EXAMPLE-WORLD-LOG.md` 和 `EXAMPLE-STORY-LOG.md` 模板，从零填自己的设定。
+- **懒得自己搭世界？** 把 `worlds/default/` 里的 `WORLD-LOG.md` 复制到 `user-data/story/WORLD.md`，这是一套完整的预置世界（共振法则剑与魔法）。
+- **想自己创建世界？** 用 `assets/starter-profile/story/WORLD.md` 模板，从零填自己的设定。
 
 ---
 
@@ -132,21 +131,22 @@ copy profiles\EXAMPLE-WORLD-LOG.md profiles\WORLD-LOG.md
 
 它不是“复制到任意聊天窗口就能完整运行”的纯提示词项目，更接近一个依赖本地文件结构的工作区模板。
 
-### 最低可用方式
+### 降级路径
 
-如果你的环境不支持完整 Skill 机制，也可以降级使用：
+没有 Python 环境，或环境不支持完整 Skill 机制时，也能用：
 
-- 手动维护 `FITNESS-LOG.md`
-- 把 `STORY-LOG.md` 和 `WORLD-LOG.md` 当作长期上下文资料
+- AI 直接手写 `user-data/sessions/YYYY-MM-DD.json`（格式见 `assets/starter-profile/example-session.json`，字段简单，AI 能写准）
+- AI 手动维护 `user-data/CURRENT-STATE.json` 的 exp/level/属性（脚本只是让更新更可靠，不是必需）
+- 把 `CURRENT-STATE.json` 和 `story/WORLD.md` 当作长期上下文资料
 - 让 AI 根据这些文件提供训练建议、复盘和剧情推进
 
-### 关于 `requires`
+### 关于能力依赖
 
-`SKILL.md` 中的 `get_current_time`、`workout_log_memory` 表示推荐能力，不同平台名称可能不同。
-如果你的环境没有这些能力，可以用：
+`SKILL.md` 不再使用 `requires` 字段。需要的能力：
 
-- 系统时间工具或手动时间输入替代 `get_current_time`
-- 本地 Markdown 日志替代 `workout_log_memory`
+- 时间获取：系统时间工具或手动输入
+- 文件读写：本地 JSON/Markdown 读写
+- 可选：Python 3.8+（用于脚本，没有也能跑）
 
 ---
 
@@ -155,23 +155,30 @@ copy profiles\EXAMPLE-WORLD-LOG.md profiles\WORLD-LOG.md
 ```text
 ├── README.md
 ├── SKILL.md
-├── profiles/
-│   ├── EXAMPLE-FITNESS-LOG.md
-│   ├── EXAMPLE-STORY-LOG.md
-│   └── EXAMPLE-WORLD-LOG.md
-├── worlds/
-│   └── default/
-│       ├── WORLD-LOG.md
-│       └── STORY-LOG.md
 ├── references/
 │   ├── coach-wang-tan-method.md
 │   ├── coach-guide.md
 │   ├── narrative-templates.md
-│   └── rpg-themes.md
-├── skills/
-│   ├── STORY-ENGINE.md
-│   ├── alignment-engine.md
-│   └── decision-engine.md
+│   ├── rpg-rules.md
+│   └── story-engine.md
+├── worlds/
+│   └── default/
+│       ├── WORLD-LOG.md
+│       └── STORY-LOG.md
+├── assets/
+│   └── starter-profile/
+│       ├── PROFILE.md
+│       ├── CURRENT-PLAN.md
+│       ├── CURRENT-STATE.json
+│       ├── example-session.json
+│       └── story/
+│           ├── WORLD.md
+│           └── STATE.json
+├── scripts/
+│   ├── init_profile.py
+│   ├── append_session.py
+│   ├── update_summary.py
+│   └── validate_state.py
 └── examples/
     ├── MINIMAL-RUN.md
     ├── AUTHOR-WORLD-SAMPLE.md
@@ -182,16 +189,20 @@ copy profiles\EXAMPLE-WORLD-LOG.md profiles\WORLD-LOG.md
 
 ## 核心设计
 
-- `profiles/EXAMPLE-FITNESS-LOG.md`
-  训练数据母本。记录重量、次数、RPE、训练计划和当前属性。
-- `profiles/EXAMPLE-STORY-LOG.md`
-  动态剧情状态。记录当前章节、活跃任务、伏笔和已解锁内容。
-- `profiles/EXAMPLE-WORLD-LOG.md`
+- `user-data/PROFILE.md`
+  静态个人档案（姓名、目标、设备、教练体系、伤病史）。
+- `user-data/CURRENT-STATE.json`
+  动态状态快照（等级、属性、EXP、recovery、recent_bests），由 `update_summary.py` 维护。
+- `user-data/CURRENT-PLAN.md`
+  本周训练计划，由 AI 或用户维护。
+- `user-data/sessions/YYYY-MM-DD.json`
+  每日训练记录（动作、组数、重量、RPE、疼痛），追加不覆盖。
+- `user-data/story/WORLD.md`
   静态世界设定。记录世界规则、角色背景、NPC 和地点。
-- `skills/STORY-ENGINE.md`
+- `user-data/story/STATE.json`
+  动态剧情状态（章节、任务、伏笔）。
+- `references/story-engine.md`
   训练如何映射到叙事的通用逻辑，不绑定固定主线。
-- `skills/alignment-engine.md` 与 `skills/decision-engine.md`
-  扩展规则模块。首次使用时可以先忽略，等你准备做更复杂的自定义时再阅读。
 
 ---
 
@@ -203,10 +214,10 @@ copy profiles\EXAMPLE-WORLD-LOG.md profiles\WORLD-LOG.md
    预设的是凯圣王×谭指导（力量/增肌向），不同训练目标可选 [教练风格指南](references/coach-guide.md) 中的其他教练。也可以完全替换为你熟悉的其他训练体系。
 
 2. 换 RPG 主题
-   在 `references/rpg-themes.md` 中新增你的称号体系和主题语言。
+   在 `references/rpg-rules.md` 中新增你的称号体系和主题语言。
 
 3. 换世界观
-   不想自己搭？直接用 `worlds/default/` 里的预置世界。想从头来？从 `profiles/EXAMPLE-WORLD-LOG.md` 开始定义你自己的设定。
+   不想自己搭？直接用 `worlds/default/` 里的预置世界。想从头来？从 `assets/starter-profile/story/WORLD.md` 开始定义你自己的设定。
 
 ---
 

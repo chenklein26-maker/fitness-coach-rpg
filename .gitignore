@@ -1,0 +1,11 @@
+# 用户数据（个人训练记录，不进 git）
+user-data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# 系统
+.DS_Store
+Thumbs.db

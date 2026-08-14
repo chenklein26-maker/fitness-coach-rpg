@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "updated_at": null,
+  "current_chapter": "<卷名 / 章名>",
+  "current_task": "<这几次训练主要在推进什么>",
+  "default_direction": "<如果一切顺利，接下来通常去哪里或做什么>",
+  "resources": {"gold": 0, "reputation": 0},
+  "character_ref": "level/attributes 见 CURRENT-STATE.json",
+  "active_chapter": {
+    "name": "<篇章名>",
+    "goal": "<本篇章当前目标>",
+    "revealable": [],
+    "obstacles": [],
+    "typical_resolution": "<这个篇章通常会怎样收尾>"
+  },
+  "unlocked_chapters": [],
+  "npc_relations": [],
+  "active_foreshadowing": []
+}

@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "date": "2026-05-01",
+  "session_type": "push",
+  "duration_minutes": 60,
+  "overall_rpe": 8,
+  "exercises": [
+    {
+      "exercise": "barbell_bench_press",
+      "sets": [
+        {"weight_kg": 45, "reps": 8, "rpe": 8},
+        {"weight_kg": 45, "reps": 8, "rpe": 8},
+        {"weight_kg": 45, "reps": 8, "rpe": 8}
+      ],
+      "pain": {"location": null, "severity": 0},
+      "notes": "动作稳定，胸肌发力感明显"
+    },
+    {
+      "exercise": "incline_dumbbell_press",
+      "sets": [
+        {"weight_kg": 14, "reps": 12, "rpe": 8}
+      ],
+      "pain": {"location": null, "severity": 0},
+      "notes": "4组12次"
+    }
+  ],
+  "story_advance": "推日突破叙事一段"
+}
