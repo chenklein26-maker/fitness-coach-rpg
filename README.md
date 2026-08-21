@@ -89,7 +89,7 @@ If you want to run your own "save file" instead of inheriting someone else's sto
 
 ## 🚀 快速开始
 
-1. 将本仓库放进你的 AI 工作区或 Skill 工作区。
+1. 克隆或下载本仓库到任意目录。整个仓库就是你的存档——不需要安装，不需要注册到任何平台，拿到就能开玩。
 2. 在 AI 对话中说“开始训练”或“初始化档案”。
 3. AI 会自动读取示例模板并引导你完成首次设定。
 
@@ -123,7 +123,7 @@ cp -r assets/starter-profile user-data
 
 ## 运行环境
 
-本 Skill 更适合运行在支持以下能力的 AI 环境中：
+这个仓库不是需要注册的平台技能插件——它就是一份完整的“存档”，SKILL.md 是这份存档的行为说明书。只要你的 AI 环境能读写本地文件，就能玩：
 
 - 可读取和写入本地文件
 - 可持续访问同一工作区中的多个 Markdown 文件
@@ -133,7 +133,7 @@ cp -r assets/starter-profile user-data
 
 ### 降级路径
 
-没有 Python 环境，或环境不支持完整 Skill 机制时，也能用：
+没有 Python 环境，或 AI 环境无法读写本地文件时，也能用：
 
 - AI 直接手写 `user-data/sessions/YYYY-MM-DD.json`（格式见 `assets/starter-profile/example-session.json`，字段简单，AI 能写准）
 - AI 手动维护 `user-data/CURRENT-STATE.json` 的 exp/level/属性（脚本只是让更新更可靠，不是必需）
